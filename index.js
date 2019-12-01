@@ -3,27 +3,55 @@ var consoleTable = require("console.table");
 var mysql = require("mysql");
 //var fs = require("fs");
 
-const writeFileAsync = util.promisify(fs.writeFile);
+
+//const writeFileAsync = util.promisify(fs.writeFile);
 
 function promptUser() {
-    return inquirer.prompt([
-        {
-            type: "list",
-            name: "options",
-            message: "What would you like to do?",
-            choices: ["View all employees", "View all employees by department", "View all employees by manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager"]
-        //need to add conditionals to whatever choice is selected and add addtional questions
-        //What is the employee's first name?
-        //What is the employee's last name?
-        //Which employee do you want to remove? - needs to bring up list of employees
-        //What role would you like to update it to?
-        //Who is the employee's manager?
-       
-    ]);
-}
+  return inquirer.prompt(
+    {
+      type: "list",
+      name: "options",
+      message: "What would you like to do?",
+      choices: ["View all employees", "View all employees by department", "View all employees by manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager"]
+      //need to add conditionals to whatever choice is selected and add addtional questions
+      //What is the employee's first name?
+      //What is the employee's last name?
+      //Which employee do you want to remove? - needs to bring up list of employees
+      //What role would you like to update it to?
+      //Who is the employee's manager?
+      //.then(answers => {
+      //  console.log("answer:", answers.choices);
+      // })
 
+      // should wrap these "answers/choices" in an object
+
+      //  var department = { 
+      //     id 
+      //     name 
+      //}
+      //  var role = {
+      //     id 
+      //     title 
+      //     salary 
+      //     department_id 
+      //}
+      // var employee = {
+      //     id
+      //     first_name 
+      //     last_name 
+      //     role_id 
+      //     manager_id
+      // }
+
+
+
+
+
+    });
+}
+//.then 
 function generateHTML(answers) {
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,14 +77,14 @@ function generateHTML(answers) {
 }
 
 promptUser()
-    .then(function (answers) {
-        const html = generateHTML(answers);
+  .then(function (answers) {
+    const html = generateHTML(answers);
 
-        return writeFileAsync("index.html", html);
-    })
-    .then(function () {
-        console.log("Successfully wrote to index.html");
-    })
-    .catch(function (err) {
-        console.log(err);
-    });
+    return writeFileAsync("index.html", html);
+  })
+  .then(function () {
+    console.log("Successfully wrote to index.html");
+  })
+  .catch(function (err) {
+    console.log(err);
+  });
