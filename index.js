@@ -1,10 +1,10 @@
 var inquirer = require("inquirer");
-//var consoleTable = require("console.table");
+var consoleTable = require("console.table");
 var mysql = require("mysql");
 
 var connection = mysql.createConnection({
   host: "localhost",
-  port: 3030,
+  port: 3306,
   user: "root",
   password: "root",
   database: "employee_db"
@@ -19,11 +19,11 @@ function runSearch() {
   inquirer
     .prompt({
       type: "list",
-      name: "options",
+      name: "action",
       message: "What would you like to do?",
       choices: ["View all employees",
-        "View all employees by department",
-        "View all employees by manager",
+        "View all departments",
+        "View all managers",
         "Add Employee",
         "Remove Employee",
         "Update Employee Role",
@@ -32,16 +32,17 @@ function runSearch() {
 
     })
     .then(function (answer) {
+      console.log(answer.action);
       switch (answer.action) {
         case "View all employees":
           employeeView();
           break;
 
-        case "View all employees by department":
+        case "View all departments":
           departmentView();
           break;
 
-        case "View all employees by manager":
+        case "View all managers":
           managerView();
           break;
 
@@ -73,13 +74,13 @@ function employeeView() {
     .prompt({
       name: "employeeView",
       type: "input",
-      message: "What employee would you like to search for?"
+      message: "What employee would you like to search for (by last name)?"
     })
     .then(function (answer) {
-      var query = "SELECT first_name, last_name FROM employee WHERE ?";
-      connection.query(query, { employee: answer.employee }, function (err, res) {
+      var query = "SELECT first_name, last_name, id FROM employee WHERE ?";
+      connection.query(query, { last_name: answer.employeeView }, function (err, res) {
         for (var i = 0; i < res.length; i++) {
-          console.log("First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name);
+          console.log("First Name: " + res[i].first_name + " || Last name: " + res[i].last_name + " || Id: " + res[i].id);
         }
         runSearch();
       });
@@ -87,59 +88,46 @@ function employeeView() {
 }
 
 function departmentView() {
-  inquirer
-    .prompt({
-      name: "departmentView",
-      type: "rawlist",
-      message: "View all employees by department",
-    })
-    .then(function (answer) {
-      var query = "SELECT dept_name FROM department WHERE ?";
-      connection.query(query, function (err, res) {
-        for (var i = 0; i < res.length; i++) {
-          console.log(res[i].department);
-        }
-        runSearch();
-      });
-    });
+  var query = "SELECT name FROM department";
+  connection.query(query, function (err, res) {
+    for (var i = 0; i < res.length; i++) {
+      console.log(res[i].name);
+    }
+    runSearch();
+  });
 }
 
 function managerView() {
+
+  var query = "SELECT id, first_name, last_name FROM Employee WHERE id IN (SELECT manager_id FROM employee WHERE manager_id IS NOT NULL)";
+  connection.query(query, function (err, res) {
+    for (var i = 0; i < res.length; i++) {
+      console.log(res[i].first_name + " " + res[i].last_name + " || Id: " + res[i].id);
+    }
+    runSearch();
+  });
+}
+function employeeAdd() {
   inquirer
     .prompt({
-      name: "managerView",
-      type: "rawlist",
-      message: "View all employees by manager"
+      name: "employeeAdd",
+      type: "input",
+      message: ["Enter Employee First then Last Name"]
     })
+
+    //this needs to be a prompt to enter first and last name to the employee table so change code below!
     .then(function (answer) {
-      var query = "SELECT manager_id FROM employee WHERE ?";
-      connection.query(query, function (err, res) {
-        for (var i = 0; i < res.length; i++) {
-          console.log(res[i].department);
-        }
-        runSearch();
+      console.log(answer)
+      var str = answer.employeeAdd;
+      var firstAndLastName = str.split(" ");
+      console.log(firstAndLastName);
+      var query = "INSERT INTO employee (first_name, last_name) VALUES ?";
+      connection.query(query, [[firstAndLastName]], function (err, res) {
+        console.log(err);
+
       });
-    });
+    })
 }
-// function employeeAdd() {
-//   inquirer
-//     .prompt({
-//       name: "employeeAdd",
-//       type: "input",
-//       message: ["Enter Employee First Name", "Enter Employee Last Name"]
-//       //the code above in "message" might be wrong, need to look that up
-//     })
-//     //this needs to be a prompt to enter first and last name to the employee table so change code below!
-//   //   .then(function (answer) {
-//   //     var query = "//SELECT manager_id FROM employee WHERE ?";
-//   //     connection.query(query, function (err, res) {
-//   //       for (var i = 0; i < res.length; i++) {
-//   //         console.log(res[i].department);
-//   //       }
-//   //       runSearch();
-//   //     });
-//   //   });
-//   // }
 
 function employeeRemove() {
   inquirer
@@ -195,7 +183,7 @@ function employeeManager() {
         runSearch();
       });
     });
-  }
+}
 // //all this code below needs to be fixed to reflect a connection end
 //   function exit() {
 //     inquirer
@@ -324,7 +312,7 @@ function employeeManager() {
 
 //         //  var department = { 
 //         //     id 
-//         //     dept_name 
+//         //     name 
 //         //}
 //         //  var role = {
 //         //     id 
